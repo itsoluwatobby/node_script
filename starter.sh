@@ -1,12 +1,10 @@
 #! /bin/bash
 
 ## Author: OLUWATOBI AKINOLA SAMUEL
+## Version: 1.0.0
 ## Codename: itsoluwatobby
-## Description: 
+## Description: A short project to help you get started with your node. js project
 ## Email: itsoluwatobby@gmail.com
-
-echo -e 'Create a directory or make use of this directory? (Y/N): \c'
-read response
 
 checksWrongInput(){
   # CHECKS FOR A WRONG INPUT
@@ -174,32 +172,41 @@ createProjectDirectories(){
   fi
 }
 
-# ------------- MAIN PROJECT -----------------
-response=${response:0:1}
-response=${response^^}
+# ------------- MAIN ENTRY POINT -----------------
 
-  # CHECKS FOR WRONG INPUT
-  checksWrongInput "$response"
-  response="$userArg"
+main() {
+  echo -e 'Create a directory or make use of this directory? (Y/N): \c'
+  read response
 
-if [ ${response^^} == "Y" ]
-then
-  echo -e "Directory name: \c"
-  read dirname
+  response=${response:0:1}
+  response=${response^^}
 
-  fileNameChecker "$dirname"
-  
-  mkdir $dirname && cd $dirname
+    # CHECKS FOR WRONG INPUT
+    checksWrongInput "$response"
+    response="$userArg"
 
-  fileCreation
-  createProjectDirectories
-  exit
-else
-  fileCreation
-  createProjectDirectories
-  exit
-fi
+  if [ ${response^^} == "Y" ]
+  then
+    echo -e "Directory name: \c"
+    read dirname
 
+    fileNameChecker "$dirname"
+    
+    mkdir $dirname && cd $dirname
+
+    fileCreation
+    createProjectDirectories
+    exit
+  else
+    fileCreation
+    createProjectDirectories
+    exit
+  fi
+
+  return 0
+}
+
+main
 # TODO: 1) O flag not taken care of. 
 #       2) dependency installment not done
 #       3) handle the file extension (if ext .js is missing, add it to it)
@@ -207,6 +214,7 @@ fi
 
 
 ## Author: OLUWATOBI AKINOLA SAMUEL
+## Version: 1.0.0
 ## Codename: itsoluwatobby
-## Description: 
+## Description: A short project to help you get started with your node. js project
 ## Email: itsoluwatobby@gmail.com
