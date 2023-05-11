@@ -1,26 +1,50 @@
 #! /bin/bash
+
+## Author: OLUWATOBI AKINOLA SAMUEL
+## Codename: itsoluwatobby
+## Description: 
+## Email: itsoluwatobby@gmail.com
+
 echo -e 'Create a directory or make use of this directory? (Y/N): \c'
 read response
+
+checksWrongInput(){
+  # CHECKS FOR A WRONG INPUT
+  local userArg=$1
+
+  while [ ${userArg} != "Y" -a ${userArg} != "N" ] || [ -z $userArg ]
+  do  
+      if [ $trials -eq 3 ]; then
+        echo 'Script stopped'
+        exit
+      fi
+
+      echo -e 'Please enter Y or Yes / No or N: \c'
+      read userArg
+      userArg=${userArg:0:1}
+      userArg=${userArg^^}
+      trials=$((trials + 1))
+  done
+}
+
+## install dependencies
+installDependencies(){
+  local dependencies=$@
+  npm i ${dependencies[@]}
+}
+
 trials=0
 response=${response:0:1}
-# CHECKS FOR A WRONG INPUT
-while [ ${response^^} != "Y" -o ${response^^} != "N" ]
-do  echo -e 'Please enter Y or Yes / No or N: \c'
-    read response
-    response=${response:0:1}
-    trials=$((trials + 1))
+response=${response^^}
 
-    if [ $trials -eq 3 ]; then
-      echo 'Script stopped'
-      break
-    fi
-done
+  # CHECKS FOR WRONG INPUT
+  checksWrongInput $response
 
 if [ ${response^^} == "Y" ]
 then
   echo -e "Directory name: \c"
   read dirname
-  local count=0
+  count=0
 
   # CHECKS FOR CONFLICTING DIRECTORY NAME
   while [ -e $dirname -a $count -lt 3 ]
@@ -36,8 +60,14 @@ then
   
   mkdir $dirname && cd $dirname
   echo -e "Entry point file or use index.js? (Y/N): \c"
+  # TODO: COMPLETE DEFAULT index.js
   read decide
   decide=${decide:0:1}
+  decide=${decide^^}
+
+  # CHECKS FOR WRONG INPUT
+  checksWrongInput $decide
+
   if [ ${decide^^} == "Y" ]
   then
     read -p "Enter file name: " filename
@@ -47,6 +77,11 @@ then
     read decision
     # WITHOUT -Y FLAG
     decision=${decision:0:1}
+    decision=${decision^^}
+
+    # CHECKS FOR WRONG INPUT
+    checksWrongInput $decision
+
     if [ ${decision^^} == 'Y']
     then npm init
 
