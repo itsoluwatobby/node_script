@@ -51,7 +51,7 @@ installDependencies(){
     echo -e "Enter dependency names (separated by space)?: \c"
     read -r -a dependencies
 
-    echo "Installing depandencies..."
+    echo "Installing dependencies..."
     npm i ${dependenciesArray[@]}
     # wait
     
@@ -60,39 +60,71 @@ installDependencies(){
   echo -e "Installation completed"
 }
 
-response=${response:0:1}
-response=${response^^}
+## CREATE PROJECT
+createProject(){
+  echo -e "Creating project..."
+  local filename=$1
 
-  # CHECKS FOR WRONG INPUT
-  checksWrongInput "$response"
-  response="$userArg"
-if [ ${response^^} == "Y" ]
-then
-  echo -e "Directory name: \c"
-  read dirname
-  declare -i count=0
+  npm init -y &
+  wait
+  echo -e "Project initiated\n"
+  
+  # --- CREATING A DEFAULT HTTP SERVER ----
+  echo -e "\nServer boiler plate option"
+  echo -e "--------------------------\n"
+  echo -e "http server (H)\nExpress server (E)\nYou are good (O)\nResponse (H | E | O): \c"
+  read res
+  if [ ${res^^} == "H" ]
+  then
+    echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n\n\telse{\n\t\tres.writeHead(404)\n\t\tres.end('Resource not found')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
+    
+    installDependencies &
+    wait
 
-  while [[ -e $dirname && $count -lt 3 ]] || [ -z "$dirname" ]
+    echo "Happy coding :)!!"
+  elif [ ${res^^} == "E" ]
+  then
+    echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req, res) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
+    
+    installDependencies &
+    wait
+
+    echo "Happy coding :)!!"
+  else
+      echo "console.log('Hello, Welcome')" >> $filename
+      echo "DONE"
+      exit
+  fi
+}
+
+fileNameChecker(){
+  dirname=$1
+  local count=0
+  while [[ -e $dirname && $count -le 3 ]] || [ -z "$dirname" ]
   do
+    if [ $count -eq 3 ]; then
+      echo -e 'You need to enter a new File name\n'
+      exit
+    fi
+
     if [ -z "$dirname" ]; then
-        echo "Directory name cannot be empty"
+        echo "Name cannot be empty"
     else
-      echo "Directory exits, use a new file name"
+      echo "Conflicting file name"
     fi
 
     count=$((count + 1))
-    read -p "New directory name: " dirname
+    
+    read -p "File name: " dirname
 
-    if [ $count -eq 3 ]; then
-      echo -e 'You need to enter a new Directory name\n'
-      exit
-    fi
   done
-  
-  mkdir $dirname && cd $dirname
+}
+
+fileCreation(){
+
   echo -e "Entry point file name or use index.js? (Y/N): \c"
-  # TODO: COMPLETE DEFAULT index.js
   read decide
+
   decide=${decide:0:1}
   decide=${decide^^}
 
@@ -103,49 +135,72 @@ then
   if [ ${decide^^} == "Y" ]
   then
     read -p "Enter file name: " filename
+
+    # ----------- CHECK FOR VALID FILENAME -----------------
+    fileNameChecker "$filename"
+    filename="$dirname"
+
     touch $filename .gitignore .env ; chmod a+x $filename
     echo -e "node_modules\n.env" >> .gitignore
 
-    echo -e "Creating project..."
-  
-    npm init -y &
-    wait
-    echo -e "Project initiated\n"
-    
-    # installDependencies
-    # wait
-
-    # --- CREATING A DEFAULT HTTP SERVER ----
-    echo -e "\nServer boiler plate option"
-    echo -e "--------------------------\n"
-    echo -e "http server (H)\nExpress server (E)\nYou are good (O)\nResponse (H | E | O): \c"
-    read res
-    if [ ${res^^} == "H" ]
-    then
-      # installDependencies &
-      # wait
-
-      echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: '+PORT))" >> $filename
-      
-      installDependencies
-
-      echo "Happy coding :)!!"
-    elif [ ${res^^} == "E" ]
-    then
-      echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: '+PORT))" >> $filename
-      
-      echo "Happy coding :)!!"
-    else
-        echo "console.log('Hello, Welcome')" >> $filename
-        echo "DONE"
-        exit
-    fi
+    #------------------ CREATE PROJECT------------------
+    createProject "$filename"
     
   else
-    touch index.js .gitignore .env | chmod a+x $filename
+    touch index.js .gitignore .env ; chmod a+x index.js
     echo -e "node_modules\n.env" >> .gitignore
 
+    createProject "index.js"
   fi
+}
+
+createProjectDirectories(){
+  clearShell
+  read -p "Would you like to create extra directories? (Y/N):" extraDecision
+  extraDecision=${extraDecision:0:1}
+  extraDecision=${extraDecision^^}
+
+  checksWrongInput "$extraDecision"
+  extraDecision="$userArg"
+
+  if [ "$extraDecision" == "Y" ]; then
+    echo -e "Enter directory names (separated by space)?: \c"
+    read -r -a directories
+    mkdir "${directories[@]}"
+    echo "${#directories[@]} folders: [${directories[@]}] successfully created"
+    echo "Happy coding :)!!"
+  else
+    echo "Happy coding :)!!"
+  fi
+}
+
+# ------------- MAIN PROJECT -----------------
+response=${response:0:1}
+response=${response^^}
+
+  # CHECKS FOR WRONG INPUT
+  checksWrongInput "$response"
+  response="$userArg"
+
+if [ ${response^^} == "Y" ]
+then
+  echo -e "Directory name: \c"
+  read dirname
+
+  fileNameChecker "$dirname"
+  
+  mkdir $dirname && cd $dirname
+
+  fileCreation
+  createProjectDirectories
+  exit
 else
+  fileCreation
+  createProjectDirectories
   exit
 fi
+
+# TODO: 1) O flag not taken care of. 
+#       2) dependency installment not done
+#       3) handle the file extension (if ext .js is missing, add it to it)
+#       4) Add typescript project option
