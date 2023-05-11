@@ -204,3 +204,9 @@ fi
 #       2) dependency installment not done
 #       3) handle the file extension (if ext .js is missing, add it to it)
 #       4) Add typescript project option
+
+
+## Author: OLUWATOBI AKINOLA SAMUEL
+## Codename: itsoluwatobby
+## Description: 
+## Email: itsoluwatobby@gmail.com
