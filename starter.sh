@@ -10,105 +10,141 @@ read response
 
 checksWrongInput(){
   # CHECKS FOR A WRONG INPUT
-  local userArg=$1
+  userArg=$1
+  local trials=0
 
-  while [ ${userArg} != "Y" -a ${userArg} != "N" ] || [ -z $userArg ]
+  while [[ "$userArg" != "Y" && "$userArg" != "N" || -z "$userArg" ]]
   do  
       if [ $trials -eq 3 ]; then
         echo 'Script stopped'
         exit
       fi
 
-      echo -e 'Please enter Y or Yes / No or N: \c'
+      echo -e 'Please enter Yes(Y) / No(N): \c'
       read userArg
-      userArg=${userArg:0:1}
-      userArg=${userArg^^}
+      userArg="${userArg:0:1}"
+      userArg="${userArg^^}"
       trials=$((trials + 1))
   done
+
+  return 0
+}
+
+## CLEAR SHELL
+clearShell(){
+  read -p "Clear terminal? (Y/N): " isCleared
+  isCleared=${isCleared:0:1}
+  isCleared=${isCleared^^}
+  [[ ${isCleared^^} == "Y" ]] && clear
 }
 
 ## install dependencies
 installDependencies(){
-  local dependencies=$@
-  npm i ${dependencies[@]}
+  read -p "Install dependencies? (Y/N): " installDecision
+  installDecision=${installDecision:0:1}
+  installDecision=${installDecision^^}
+
+  checksWrongInput "$installDecision"
+  installDecision="$userArg"
+  # ////////////////////////////////////////
+  if [ "${installDecision^^}" == 'Y' ]; then
+    echo -e "Enter dependency names (separated by space)?: \c"
+    read -r -a dependencies
+
+    echo "Installing depandencies..."
+    npm i ${dependenciesArray[@]}
+    # wait
+    
+    clearShell
+  fi
+  echo -e "Installation completed"
 }
 
-trials=0
 response=${response:0:1}
 response=${response^^}
 
   # CHECKS FOR WRONG INPUT
-  checksWrongInput $response
-
+  checksWrongInput "$response"
+  response="$userArg"
 if [ ${response^^} == "Y" ]
 then
   echo -e "Directory name: \c"
   read dirname
-  count=0
+  declare -i count=0
 
-  # CHECKS FOR CONFLICTING DIRECTORY NAME
-  while [ -e $dirname -a $count -lt 3 ]
-  do  echo "Directory exits, use a new file name"
-      count=$((count + 1))
-      read -p "New directory name: " dirname
+  while [[ -e $dirname && $count -lt 3 ]] || [ -z "$dirname" ]
+  do
+    if [ -z "$dirname" ]; then
+        echo "Directory name cannot be empty"
+    else
+      echo "Directory exits, use a new file name"
+    fi
 
-      if [ $trials -eq 3 ]; then
-        echo -e 'You need to enter a new Directory name\n'
-        break
-      fi
+    count=$((count + 1))
+    read -p "New directory name: " dirname
+
+    if [ $count -eq 3 ]; then
+      echo -e 'You need to enter a new Directory name\n'
+      exit
+    fi
   done
   
   mkdir $dirname && cd $dirname
-  echo -e "Entry point file or use index.js? (Y/N): \c"
+  echo -e "Entry point file name or use index.js? (Y/N): \c"
   # TODO: COMPLETE DEFAULT index.js
   read decide
   decide=${decide:0:1}
   decide=${decide^^}
 
-  # CHECKS FOR WRONG INPUT
-  checksWrongInput $decide
+  # ------------------ CHECKS FOR WRONG INPUT -----------------
+  checksWrongInput "$decide"
+  decide="$userArg"
 
   if [ ${decide^^} == "Y" ]
   then
     read -p "Enter file name: " filename
-    touch $filename | chmod a+x $filename
+    touch $filename .gitignore .env ; chmod a+x $filename
+    echo -e "node_modules\n.env" >> .gitignore
 
-    echo -e "Default node project or use [--yes(-y)] flag? (Y/N): \c"
-    read decision
-    # WITHOUT -Y FLAG
-    decision=${decision:0:1}
-    decision=${decision^^}
+    echo -e "Creating project..."
+  
+    npm init -y &
+    wait
+    echo -e "Project initiated\n"
+    
+    # installDependencies
+    # wait
 
-    # CHECKS FOR WRONG INPUT
-    checksWrongInput $decision
+    # --- CREATING A DEFAULT HTTP SERVER ----
+    echo -e "\nServer boiler plate option"
+    echo -e "--------------------------\n"
+    echo -e "http server (H)\nExpress server (E)\nYou are good (O)\nResponse (H | E | O): \c"
+    read res
+    if [ ${res^^} == "H" ]
+    then
+      # installDependencies &
+      # wait
 
-    if [ ${decision^^} == 'Y']
-    then npm init
+      echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: '+PORT))" >> $filename
+      
+      installDependencies
 
-    # WITH -Y FLAG
+      echo "Happy coding :)!!"
+    elif [ ${res^^} == "E" ]
+    then
+      echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: '+PORT))" >> $filename
+      
+      echo "Happy coding :)!!"
     else
-      npm init -y
-      # --- CREATING A DEFAULT HTTP SERVER ----
-      read -p "http server Or Express server Or You are good (H/E/O): " res
-      if [ ${res^^} == "H" ]
-      then  
-        echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: '+PORT))" >> $filename
-      echo "run script"
-      elif [ ${res^^} == "H" ]
-      then  
-        npm i express
-        echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.json({status: true, message: 'Server up and running'})})\n\n\nserver.listen(PORT, () => console.log('server running on port: '+PORT))" >> $filename
-        echo "you are good to go"
-      else
-          echo "console.log('Hello, Welcome')" >> $filename
-          echo "DONE"
-          exit
-      fi
+        echo "console.log('Hello, Welcome')" >> $filename
+        echo "DONE"
+        exit
     fi
+    
   else
-    touch index.js
-    echo -e "Default node project or use [--yes(-y)] flag? (Y/N): \c"
-    read decision
+    touch index.js .gitignore .env | chmod a+x $filename
+    echo -e "node_modules\n.env" >> .gitignore
+
   fi
 else
   exit
