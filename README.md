@@ -50,7 +50,7 @@ The default flag gets you started with your project in no time, with 5 default p
 * [x] Typescript server template and config file
 * [x] Javascript server template
 * [ ] Option to open project folder
-* [ ] Extension name isn't really necessary
+* [x] Extension name isn't really necessary
 * [x] Custom project folders
 
 
