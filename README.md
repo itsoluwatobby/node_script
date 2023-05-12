@@ -34,9 +34,12 @@ The default flag gets you started with your project in no time, with 5 default p
   ./starter default # creates a default js server
 
   ./starter javascript # prompts you to create your js node server
+  
+  ./starter javascript default # creates a default js server
 
   ./starter typescript # prompts you to create your ts node server
-
+  
+  ./starter typescript default # creates a default js server
 ```
 
 ---
