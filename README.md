@@ -39,7 +39,7 @@ The default flag gets you started with your project in no time, with 5 default p
 
   ./starter typescript # prompts you to create your ts node server
   
-  ./starter typescript default # creates a default js server
+  ./starter typescript default # creates a default ts server
 ```
 
 ---
