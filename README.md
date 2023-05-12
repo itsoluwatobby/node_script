@@ -70,8 +70,9 @@ The default flag gets you started with your project in no time, with 5 default p
     |  checksWrongInput
     |  fileNameChecker
     |___|
-    |
-  fileCreation
+    |               ____indexFile
+  fileCreation<----|
+    |              |____defaultProject
     |___
     |   |
     |  checksWrongInput

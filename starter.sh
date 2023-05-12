@@ -55,6 +55,8 @@ installDependencies(){
   clearShell
   local typescript=$1
   
+  #//////////////////////////////////////CONTINUE TOMORROW
+
   echo -e "\n${CYAN}Install dependencies? (Y/N): ${NC}\c"
   read installDecision
   installDecision=${installDecision:0:1}
@@ -96,24 +98,62 @@ installDependencies(){
   [[ "${installDecision^^}" == "Y" ]] && echo -e "Installation completed"
 }
 
+## CREATE PROJECT
+createProject(){
+  echo "---------------------------------------------------------"
+  echo -e "Creating project..."
+  local filename=$1
+  local typescript=$2
+  local projectName=$3
+
+  if [ -z "$typescript" ];then
+    npm init -y &
+    wait
+  else
+    touch package.json
+    echo -e "{\n   \"name\": \"$projectName\",\n   \"version\": \"1.0.0\",\n   \"description\": \"\",\n   \"main\": \"filename\",\n   \"type\": \"module\",\n   \"scripts\": {\n     \"start\": \"tsc && node dist/$filename\",\n     \"dev\": \"tsc && nodemon dist/$filename\"\n   },\n   \"keywords\": [],\n   \"author\": \"\",\n   \"license\": \"ISC\"\n}" >> package.json
+  fi
+  echo -e "Project initiated\n"
+  
+  # --- CREATING A DEFAULT HTTP SERVER ----
+  if [ "$typescript" != "defaultjs" ];then
+    echo -e "${GREEN}Server boiler plate option${NC}"
+    echo -e "--------------------------\n"
+    if [ -z "$typescript" ];then
+      echo -e "http server ----------------- (H)\nExpress server -------------- (E)\nYou are good ---------------- (O)\nResponse (H | E | O): \c"
+      read res
+    else
+      echo -e "Express server -------------- (E)\nYou are good ---------------- (O)\nResponse (E | O): \c"
+      read res
+    fi
+  fi
+
+  if [[ -z "$typescript" || "$typescript" == "defaultjs" ]];then
+    serverJsTemplate "$res" "$filename" "$typescript"
+  else
+    serverTsTemplate "$res" "$filename" "$typescript"
+  fi
+}
+
 serverJsTemplate(){
   local res=$1
   local filename=$2
+  local typescript=$3
 
-  if [ ${res^^} == "H" ]
+  if [[ ${res^^} == "H" && "$typescript" != "defaultjs" ]]
   then
     echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n\n\telse{\n\t\tres.writeHead(404)\n\t\tres.end('Resource not found')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
     
     installDependencies
   
     #echo -e "${GREEN}Happy coding :)!!${NC}"
-  elif [ ${res^^} == "E" ]
+  elif [[ ${res^^} == "E" || "$typescript" == "defaultjs" ]]
   then
     echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req, res) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
     
-    installDependencies
-
-    #echo -e "${GREEN}Happy coding :)!!${NC}"
+    [[ "$typescript" != "defaultjs" ]] && installDependencies
+    [[ "$typescript" == "defaultjs" ]] && echo -e "${GREEN}Happy coding :)!!${NC}"
+    exit
   else
       echo "console.log('Your Javascript Node.js Project is Ready')" >> $filename
       echo -e "${GREEN}Happy coding :)!!${NC}"
@@ -124,8 +164,9 @@ serverJsTemplate(){
 serverTsTemplate(){
   local res=$1
   local filename=$2
+  local typescript=$3
 
-  if [ ${res^^} == "E" ];then
+  if [[ ${res^^} == "E"  || "$typescript" == "defaultjs" ]];then
     echo -e "import express, { Request, Response } from \"express\";\nimport http from \"http\";\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\nconst server = http.createServer(app)\n\napp.get('/', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> src/$filename
     
     installDependencies "typescript"
@@ -135,40 +176,6 @@ serverTsTemplate(){
       echo "console.log('Your Typescript Node.js Project is Ready')" >> src/$filename
       echo -e "${GREEN}Happy coding :)!!${NC}"
       exit
-  fi
-}
-
-## CREATE PROJECT
-createProject(){
-  echo "---------------------------------------------------------"
-  echo -e "Creating project..."
-  local filename=$1
-  local typescript=$2
-
-  if [ -z "$typescript" ];then
-    npm init -y &
-    wait
-  else
-    touch package.json
-    echo -e "{\n   \"name\": \"dirname\",\n   \"version\": \"1.0.0\",\n   \"description\": \"\",\n   \"main\": \"filename\",\n   \"type\": \"module\",\n   \"scripts\": {\n     \"start\": \"tsc && node dist/filename\",\n     \"dev\": \"tsc && nodemon dist/filename\"\n   },\n   \"keywords\": [],\n   \"author\": \"\",\n   \"license\": \"ISC\"\n}" >> package.json
-  fi
-  echo -e "Project initiated\n"
-  
-  # --- CREATING A DEFAULT HTTP SERVER ----
-  echo -e "${GREEN}Server boiler plate option${NC}"
-  echo -e "--------------------------\n"
-  if [ -z "$typescript" ];then
-    echo -e "http server ----------------- (H)\nExpress server -------------- (E)\nYou are good ---------------- (O)\nResponse (H | E | O): \c"
-    read res
-  else
-    echo -e "Express server -------------- (E)\nYou are good ---------------- (O)\nResponse (E | O): \c"
-    read res
-  fi
-
-  if [ -z "$typescript" ];then
-    serverJsTemplate "$res" "$filename"
-  else
-    serverTsTemplate "$res" "$filename"
   fi
 }
 
@@ -203,6 +210,19 @@ tsConfigFile(){
 
 fileCreation(){
   local typescript=$1
+  local projectName=$2
+
+  if [ "$typescript" == "defaultjs" ];then
+    defaultProject "$typescript" "$projectName"
+  else
+    indexFile "$typescript" "$projectName"
+  fi
+}
+
+
+indexFile(){
+  local typescript=$1
+  local projectName=$2
 
   if [ -z "$typescript" ];then
     echo -e "Entry point file name or use index.js? (Y/N): \c"
@@ -241,26 +261,33 @@ fileCreation(){
     if [ -z "$typescript" ];then
       touch $filename .gitignore .env README.md
       echo -e "node_modules\n.env" >> .gitignore
-      createProject "$filename"
+      createProject "$filename" 
     else
       touch src/$filename .gitignore .env README.md tsconfig.json
       echo -e "node_modules\n.env" >> .gitignore
       tsConfigFile
-      createProject "$filename" "ts"
+      createProject "$filename" "ts" "$projectName"
     fi
 
   else
-    if [ -z "$typescript" ];then
-      touch index.js .gitignore .env
-      echo -e "node_modules\n.env" >> .gitignore
-      createProject "index.js"
-    else
-      touch src/index.ts .gitignore .env README.md tsconfig.json
-      echo -e "node_modules\n.env" >> .gitignore
-      tsConfigFile
-      createProject "index.ts" "ts"
-    fi
+    defaultProject "$typescript" "$projectName"
+  fi
+}
 
+defaultProject(){
+  local typescript=$1
+  local projectName=$2
+
+  if [[ -z "$typescript" || "$typescript" == "defaultjs" ]];then
+    touch index.js .gitignore .env
+    echo -e "node_modules\n.env" >> .gitignore
+    createProject "index.js" "$typescript"
+  else
+    # mkdir src
+    touch src/index.ts .gitignore .env README.md tsconfig.json
+    echo -e "node_modules\n.env" >> .gitignore
+    tsConfigFile
+    createProject "index.ts" "ts" "$projectName"
   fi
 }
 
@@ -323,6 +350,7 @@ createProjectDirectories(){
 
 mainProgram() {
   local typescript=$1
+
   echo -e 'Create a directory or make use of this directory? (Y/N): \c'
   read response
 
@@ -342,11 +370,11 @@ mainProgram() {
     
     mkdir $dirname && cd $dirname
 
-    fileCreation "$typescript"
+    fileCreation "$typescript" "$dirname"
     createProjectDirectories "$typescript"
     exit
   else
-    fileCreation "$typescript"
+    fileCreation "$typescript" "$dirname"
     createProjectDirectories "$typescript"
     exit
   fi
@@ -369,16 +397,11 @@ optionChecks(){
   elif [[ "${lang,,}" == "${langOption[1]:0:1}" && -z $default ]];then
       echo -e "${YELLOW}Setting up ${langOption[1]} node.js project...${NC}"
       mainProgram "ts"
-    echo -e "${GREEN}Feature coming soon...${NC}"
-    sleep 3
-    exit
 
   #--------------------- DEFAULT JS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[0]:0:1}" ]];then
       echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
-    echo -e "${GREEN}Feature coming soon...2${NC}"
-    sleep 3
-    exit
+      mainProgram "defaultjs"
 
   #--------------------- DEFAULT TS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[1]:0:1}" ]];then
@@ -390,10 +413,7 @@ optionChecks(){
   #--------------------- DEFAULT JS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && -z "${lang}" ]] || [ "${lang,,}" != "${langOption[0]:0:1}" ] || [ "${lang,,}" != "${langOption[1]:0:1}" ];then
       echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
-    echo -e "${GREEN}Feature coming soon...3${NC}"
-    sleep 3
-    exit
-
+      mainProgram "defaultjs"
   fi
   return 0
 }
