@@ -8,6 +8,7 @@
 
 # ------------- COLORS ---------------------
 GREEN='\033[0;32m'  # green color
+BLUE='\033[0;34m'   # blue color
 YELLOW='\033[0;33m'  # yellow color
 RED='\033[0;31m' # red color
 NC='\033[0m' # no color(nc)
@@ -222,7 +223,6 @@ mainProgram() {
 optionChecks(){
   lang=$1
   local default=$2
-  
   local langOption=("javascript" "typescript", "default")
   lang="${lang:0:1}"
 
@@ -261,6 +261,13 @@ echo "language $lang"
   return 0
 }
 
+noEntry(){
+  entry=""
+  echo -e "Please what node.js project do you want \n${GREEN}Javascript ---- (J)${NC}\n${BLUE}Typescript ---- (T)${NC}"
+  read -p "Option: " langType
+  entry="$langType"
+}
+
 default=$1
 entry=$2
 default="${default:0:1}"
@@ -273,8 +280,12 @@ main(){
   local default=$3
   if [ "$count" == 2 ];then
     optionChecks "$default" "$entry"
+  elif [[ "$count" -gt 0 ]];then 
+    optionChecks "$entry"
   else
-    [[ "$count" -gt 0 ]] && optionChecks "$entry" || mainProgram
+    noEntry
+    optionChecks "$entry"
+    mainProgram
   fi
 }
 
@@ -312,6 +323,8 @@ fi
 #       2) dependency installment not done
 #       3) handle the file extension (if ext .js is missing, add it to it)
 #       4) Add typescript project option
+#       5) Option to open project folder
+#       6) Prompt to select project type
 
 ##---------------------- DEFAULT FLAG --------------------------
 #       5) default - creates your progect auomatically without any prompt
