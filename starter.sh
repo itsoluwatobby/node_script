@@ -172,9 +172,7 @@ createProjectDirectories(){
   fi
 }
 
-# ------------- MAIN ENTRY POINT -----------------
-
-main() {
+option() {
   echo -e 'Create a directory or make use of this directory? (Y/N): \c'
   read response
 
@@ -206,7 +204,30 @@ main() {
   return 0
 }
 
-main
+formatChecker(){
+  lang=$1
+  echo "entry: $entry"
+  local langOption=("javascript" "typescript")
+  lang="${lang:0:1}"
+  if [ "${lang,,}" == "${langOption[0]:0:1}" ];then
+    option
+  elif [ "${lang,,}" == "${langOption[1]:0:1}" ];then
+    echo "Feature coming soon..."
+    sleep 3
+    exit
+  fi
+  return 0
+}
+
+# ------------- MAIN ENTRY POINT -----------------
+main(){
+  count=$1
+  entry=$2
+  [[ "$count" -gt 0 ]] && formatChecker "$entry" || option
+}
+
+main "$#" "$1"
+
 # TODO: 1) O flag not taken care of. 
 #       2) dependency installment not done
 #       3) handle the file extension (if ext .js is missing, add it to it)
@@ -216,5 +237,5 @@ main
 ## Author: OLUWATOBI AKINOLA SAMUEL
 ## Version: 1.0.0
 ## Codename: itsoluwatobby
-## Description: A short project to help you get started with your node. js project
+## Description: A short project to help you get started with your node.js project
 ## Email: itsoluwatobby@gmail.com
