@@ -76,7 +76,7 @@ createProject(){
   # --- CREATING A DEFAULT HTTP SERVER ----
   echo -e "\nServer boiler plate option"
   echo -e "--------------------------\n"
-  echo -e "http server (H)\nExpress server (E)\nYou are good (O)\nResponse (H | E | O): \c"
+  echo -e "http server ----------------- (H)\nExpress server -------------- (E)\nYou are good ---------------- (O)\nResponse (H | E | O): \c"
   read res
   if [ ${res^^} == "H" ]
   then
@@ -160,6 +160,9 @@ fileCreation(){
 
 createProjectDirectories(){
   clearShell
+
+  local defaultDirectories=("controller" "middleware" "routes" "helpers" "models")
+
   read -p "Would you like to create extra directories? (Y/N):" extraDecision
   extraDecision=${extraDecision:0:1}
   extraDecision=${extraDecision^^}
@@ -173,12 +176,18 @@ createProjectDirectories(){
     mkdir "${directories[@]}"
     echo "${#directories[@]} folders: [${directories[@]}] successfully created"
     echo "Happy coding :)!!"
+
+  elif [ "$default" == "D" ]; then
+    mkdir "${defaultDirectories[@]}"
+    echo "${#defaultDirectories[@]} folders: [${defaultDirectories[@]}] successfully created"
+    echo "Happy coding :)!!"
+
   else
     echo "Happy coding :)!!"
   fi
 }
 
-option() {
+mainProgram() {
   echo -e 'Create a directory or make use of this directory? (Y/N): \c'
   read response
 
@@ -210,35 +219,104 @@ option() {
   return 0
 }
 
-formatChecker(){
+optionChecks(){
   lang=$1
-  local langOption=("javascript" "typescript")
+  local default=$2
+  
+  local langOption=("javascript" "typescript", "default")
   lang="${lang:0:1}"
-  if [ "${lang,,}" == "${langOption[0]:0:1}" ];then
-    echo -e "${YELLOW}Setup $entry node.js project...${NC}"
-    option
-  elif [ "${lang,,}" == "${langOption[1]:0:1}" ];then
-      echo -e "${YELLOW}Setup $entry node.js project...${NC}"
+
+  echo "default $default"
+echo "language $lang"
+
+  if [[ "${lang,,}" == "${langOption[0]:0:1}" && -z $default ]];then
+    echo -e "${YELLOW}Setting up ${langOption[0]} node.js project...${NC}"
+    mainProgram
+
+  elif [[ "${lang,,}" == "${langOption[1]:0:1}" && -z $default ]];then
+      echo -e "${YELLOW}Setting up ${langOption[1]} node.js project...${NC}"
     echo -e "${GREEN}Feature coming soon...${NC}"
     sleep 3
     exit
+
+  elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[0]:0:1}" ]];then
+      echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
+    echo -e "${GREEN}Feature coming soon...2${NC}"
+    sleep 3
+    exit
+
+  elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[1]:0:1}" ]];then
+      echo -e "${YELLOW}Setting up a default ${langOption[1]} node.js project...${NC}"
+    echo -e "${GREEN}Feature coming soon...1${NC}"
+    sleep 3
+    exit
+
+  elif [[ "${default,,}" == "${langOption[2]:0:1}" && -z "${lang}" ]] || [ "${lang,,}" != "${langOption[0]:0:1}" ] || [ "${lang,,}" != "${langOption[1]:0:1}" ];then
+      echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
+    echo -e "${GREEN}Feature coming soon...3${NC}"
+    sleep 3
+    exit
+
   fi
   return 0
 }
 
+default=$1
+entry=$2
+default="${default:0:1}"
+default="${default^^}"
+
 # ------------- MAIN ENTRY POINT -----------------
 main(){
-  count=$1
-  entry=$2
-  [[ "$count" -gt 0 ]] && formatChecker "$entry" || option
+  local count=$1
+  local entry=$2
+  local default=$3
+  if [ "$count" == 2 ];then
+    optionChecks "$default" "$entry"
+  else
+    [[ "$count" -gt 0 ]] && optionChecks "$entry" || mainProgram
+  fi
 }
 
-main "$#" "$1"
+  #----------- CREATES A JAVASCRIPT/TYPESCRIPT PROJECT ----------------
+if [ -z "$default" ];then
+  main "$#" "$default"
+
+#   #----------- INVALID INPUT ----------------
+# elif [[ "$#" -gt 0 && "$default" != "D" ]] || [[ "$#" -gt 0 && "$default" != "J" ]] || [[ "$#" -gt 0 && "$default" != "T" ]];then
+#   echo -e "${RED}Unexpected input${NC}"
+#   exit
+
+  #----------- CREATES A DEFAULT PROJECT ----------------
+  #&& "$default" == "D" 
+elif [[ "$#" -eq 2 ]];then
+  main "$#" "$entry" "$default"
+
+  #----------- CREATES A DEFAULT PROJECT ----------------
+elif [[ "$#" -eq 1 && "$default" == "D" ]];then
+  main "$#" "$default"
+
+  #----------- CREATES A JAVASCRIPT/TYPESCRIPT PROJECT ----------------
+elif [[ "$#" -eq 1 && "$default" != "J" ]] || [ "$default" != "T" ];then
+  main "$#" "$default"
+
+  #----------- INVALID INPUT ----------------
+elif [ "$#" -gt 2 ];then
+  echo -e "${RED}Unexpected input${NC}"
+  exit
+fi
+
+
 
 # TODO: 1) O flag not taken care of. 
 #       2) dependency installment not done
 #       3) handle the file extension (if ext .js is missing, add it to it)
 #       4) Add typescript project option
+
+##---------------------- DEFAULT FLAG --------------------------
+#       5) default - creates your progect auomatically without any prompt
+#       6) javascript - for javascript project option
+#       7) typescript - for typescript project option
 
 
 ## Author: OLUWATOBI AKINOLA SAMUEL
