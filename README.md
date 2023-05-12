@@ -6,7 +6,7 @@
 ```
 ----
 > _Included Flags_
-* javascript ( j ) _**working**_ [x]
+* javascript ( j ) _**working**_
 * typescript ( t ) _**in progress...**_
 * javascript default ( j d ) _**in progress...**_
 * typescript default ( t d ) _**in progress...**_
