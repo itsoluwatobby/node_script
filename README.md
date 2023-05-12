@@ -47,10 +47,51 @@ The default flag gets you started with your project in no time, with 5 default p
 
 * [x] Creates project with a default http server
 * [x] You get choose either an express or http server template
-* [ ] Typescript server template and config file
-* [ ] Javascript server template
+* [x] Typescript server template and config file
+* [x] Javascript server template
 * [ ] Option to open project folder
+* [ ] Extension name isn't really necessary
 * [x] Custom project folders
 
 
-
+> FUNTIONS TREE
+```
+  main -- entry point
+    |
+  optionCheck
+    |___
+    |   |
+    |  noEntry
+    |___|
+    |  
+  mainProgram
+    |___
+    |   |
+    |  checksWrongInput
+    |  fileNameChecker
+    |___|
+    |
+  fileCreation
+    |___
+    |   |
+    |  checksWrongInput
+    |  fileNameChecker
+    |___| 
+    |
+  createProject
+    |_________|
+    |       tsConfigFile
+    |                 |
+  serverJsTemplate    |
+    |                 |
+    |             serverTsTemplate
+    |_________________|
+             |
+             |               ____checksWrongInput
+      installDependencies---|
+             |              |____clearShell
+             |
+             |                  _____clearShell       
+  createProjectDirectories-----|
+                               |_____checksWrongInput
+```
