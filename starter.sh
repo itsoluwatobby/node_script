@@ -6,6 +6,12 @@
 ## Description: A short project to help you get started with your node. js project
 ## Email: itsoluwatobby@gmail.com
 
+# ------------- COLORS ---------------------
+GREEN='\033[0;32m'  # green color
+YELLOW='\033[0;33m'  # yellow color
+RED='\033[0;31m' # red color
+NC='\033[0m' # no color(nc)
+
 checksWrongInput(){
   # CHECKS FOR A WRONG INPUT
   userArg=$1
@@ -206,13 +212,14 @@ option() {
 
 formatChecker(){
   lang=$1
-  echo "entry: $entry"
   local langOption=("javascript" "typescript")
   lang="${lang:0:1}"
   if [ "${lang,,}" == "${langOption[0]:0:1}" ];then
+    echo -e "${YELLOW}Setup $entry node.js project...${NC}"
     option
   elif [ "${lang,,}" == "${langOption[1]:0:1}" ];then
-    echo "Feature coming soon..."
+      echo -e "${YELLOW}Setup $entry node.js project...${NC}"
+    echo -e "${GREEN}Feature coming soon...${NC}"
     sleep 3
     exit
   fi
