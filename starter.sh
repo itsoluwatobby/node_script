@@ -13,6 +13,7 @@ YELLOW='\033[0;33m'  # yellow color
 BLUE='\033[0;34m'   # blue color
 MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
+GRAY='\033[0;37m'
 NC='\033[0m' # no color(nc)
 
 
@@ -54,8 +55,6 @@ clearShell(){
 installDependencies(){
   clearShell
   local typescript=$1
-  
-  #//////////////////////////////////////CONTINUE TOMORROW
 
   echo -e "\n${CYAN}Install dependencies? (Y/N): ${NC}\c"
   read installDecision
@@ -64,7 +63,7 @@ installDependencies(){
 
   checksWrongInput "$installDecision"
   installDecision="$userArg"
-  # ////////////////////////////////////////
+
   if [ "${installDecision^^}" == 'Y' ]; then
     echo -e "Enter dependency names (separated by space)?: \c"
     read -r -a dependencies
@@ -89,13 +88,67 @@ installDependencies(){
             wait
         done
 
-        npm i --save-dev @types/node
+        # npm i --save-dev @types/node
       fi
     fi
-    
-    #clearShell
+    #[[ "${installDecision^^}" == "Y" ]] && 
+    echo -e "Installation completed"
   fi
-  [[ "${installDecision^^}" == "Y" ]] && echo -e "Installation completed"
+  return 0
+}
+
+serverJsTemplate(){
+  local res=$1
+  local filename=$2
+  local typescript=$3
+
+  if [[ ${res^^} == "H" && "$typescript" != "defaultjs" ]];then
+    echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n\n\telse{\n\t\tres.writeHead(404)\n\t\tres.end('Resource not found')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
+
+    echo -e "\nServer template created"
+    
+    installDependencies
+  
+  elif [[ ${res^^} == "E" || "$typescript" == "defaultjs" ]];then
+    echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req, res) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
+    npm i express &
+    wait
+
+    echo -e "\nServer template created"
+    
+    [[ "$typescript" != "defaultjs" ]] && installDependencies
+    [[ "$typescript" == "defaultjs" ]] && echo -e "${GREEN}Happy coding :)!!${NC}"
+    exit
+  else
+      echo "console.log('Your Javascript Node.js Project is Ready')" >> $filename
+      echo -e "${GREEN}Happy coding :)!!${NC}"
+      exit
+  fi
+}
+
+serverTsTemplate(){
+  local res=$1
+  local filename=$2
+  local typescript=$3
+
+  if [[ ${res^^} == "E"  || "$typescript" == "defaultjs" ]];then
+    echo -e "import express, { Request, Response } from \"express\";\nimport http from \"http\";\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\nconst server = http.createServer(app)\n\napp.get('/', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> src/$filename
+
+    npm i express &
+    wait
+    npm i -D @types/express &
+    wait
+    npm i --save-dev @types/node &
+    wait
+    echo -e "\nServer template created"
+    
+    installDependencies "typescript"
+    
+  else
+      echo "console.log('Your Typescript Node.js Project is Ready')" >> src/$filename
+      echo -e "${GREEN}Happy coding :)!!${NC}"
+      exit
+  fi
 }
 
 ## CREATE PROJECT
@@ -132,50 +185,6 @@ createProject(){
     serverJsTemplate "$res" "$filename" "$typescript"
   else
     serverTsTemplate "$res" "$filename" "$typescript"
-  fi
-}
-
-serverJsTemplate(){
-  local res=$1
-  local filename=$2
-  local typescript=$3
-
-  if [[ ${res^^} == "H" && "$typescript" != "defaultjs" ]]
-  then
-    echo -e "const http = require("http");\n\nconst PORT = process.env.PORT || 5000\n\nserver = http.createServer((req, res) => {\n\tif (req.url == '/'){\n\t\tres.writeHead(200)\n\t\tres.end('Hello')\n\t}\n\n\telse{\n\t\tres.writeHead(404)\n\t\tres.end('Resource not found')\n\t}\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
-    
-    installDependencies
-  
-    #echo -e "${GREEN}Happy coding :)!!${NC}"
-  elif [[ ${res^^} == "E" || "$typescript" == "defaultjs" ]]
-  then
-    echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req, res) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
-    
-    [[ "$typescript" != "defaultjs" ]] && installDependencies
-    [[ "$typescript" == "defaultjs" ]] && echo -e "${GREEN}Happy coding :)!!${NC}"
-    exit
-  else
-      echo "console.log('Your Javascript Node.js Project is Ready')" >> $filename
-      echo -e "${GREEN}Happy coding :)!!${NC}"
-      exit
-  fi
-}
-
-serverTsTemplate(){
-  local res=$1
-  local filename=$2
-  local typescript=$3
-
-  if [[ ${res^^} == "E"  || "$typescript" == "defaultjs" ]];then
-    echo -e "import express, { Request, Response } from \"express\";\nimport http from \"http\";\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\nconst server = http.createServer(app)\n\napp.get('/', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> src/$filename
-    
-    installDependencies "typescript"
-
-    #echo -e "${GREEN}Happy coding :)!!${NC}"
-  else
-      echo "console.log('Your Typescript Node.js Project is Ready')" >> src/$filename
-      echo -e "${GREEN}Happy coding :)!!${NC}"
-      exit
   fi
 }
 
@@ -261,14 +270,13 @@ indexFile(){
     if [ -z "$typescript" ];then
       touch $filename .gitignore .env README.md
       echo -e "node_modules\n.env" >> .gitignore
-      createProject "$filename" 
+      createProject "$filename"
     else
       touch src/$filename .gitignore .env README.md tsconfig.json
       echo -e "node_modules\n.env" >> .gitignore
       tsConfigFile
       createProject "$filename" "ts" "$projectName"
     fi
-
   else
     defaultProject "$typescript" "$projectName"
   fi
@@ -291,10 +299,45 @@ defaultProject(){
   fi
 }
 
+hasLength_noConflcit(){
+  
+  local directories=$@
+  local count=0
+echo "${directories[@]}"
+  while [[ "${#directories[@]}" -eq 0 ]] && [[ $count -le 3 ]];do
+    if [ $count -eq 3 ]; then
+      echo -e "${RED}You need to directory name(s)${NC}"
+      echo -e "${GREEN}Happy coding :)!!"
+      exit
+    fi
+
+    if [ -z "$dirname" ]; then
+        echo -e "${RED}Name(s) cannot be blank${NC}"
+    else
+      for (( i=0; i < ${#directories[@]}; i++ ));do
+        for (( j=i+1; j < ${#directories[@]}; j++ ));do
+          if [[ ${directories[i],,} == ${directories[j],,} ]];then
+            echo -e "${RED}${directories[i]^^} conflicts"
+          fi
+        done
+      done
+    fi
+
+    count=$((count + 1))
+
+    [ $count -lt 3 ] && echo -e "Directory names (separated by space)?: \c"
+    [ $count -eq 3 ] && echo -e "${RED}Directory names (separated by space)?${NC}: \c"
+    read -r -a directories
+
+  done
+}
+
 createProjectDirectories(){
-  clearShell
+  
   local typescript=$1
   local defaultDirectories=("controller" "middleware" "routes" "helpers" "models")
+
+  #clearShell
 
   read -p "Would you like to create extra directories? (Y/N):" extraDecision
   extraDecision=${extraDecision:0:1}
@@ -306,6 +349,9 @@ createProjectDirectories(){
   if [[ "$extraDecision" == "Y" && -z "$typescript" ]]; then
     echo -e "Enter directory names (separated by space)?: \c"
     read -r -a directories
+    
+    hasLength_noConflcit "${directories[@]}"
+ 
     mkdir "${directories[@]}"
     echo "${#directories[@]} folders: [${directories[@]}] successfully created"
     echo -e "${GREEN}Happy coding :)!!${NC}"
@@ -317,6 +363,9 @@ createProjectDirectories(){
     echo -e "Enter directory names (separated by space)?: \c"
     read -r -a directories
     cd src
+
+    hasLength_noConflcit "${directories[@]}"
+
     mkdir "${directories[@]}"
     echo "${#directories[@]} folders: [${directories[@]}] successfully created"
     echo -e "${GREEN}Happy coding :)!!${NC}"
@@ -365,7 +414,7 @@ mainProgram() {
   then
     echo -e "Directory name: \c"
     read dirname
-
+  echo "---------------------------------------------------"
     fileNameChecker "$dirname"
     
     mkdir $dirname && cd $dirname
@@ -418,6 +467,26 @@ optionChecks(){
   return 0
 }
 
+helpFunction(){
+  echo "---------------------------------------------------"
+  echo -e "${CYAN}This should give you an insight on how to use this script effectively${NC}\n\n${GRAY}Author: OLUWATOBI AKINOLA SAMUEL\nVersion: 1.0.0\nGithub: ${BLUE}https://github.com/itsoluwatobby${NC}
+  ${GRAY}---------------------------------------------
+  ./starter help OR ./starter h
+  ${MAGENTA}Opens up this help page${NC}
+  ${GRAY}
+  ./starter <option1> <option2>
+
+  option1: help/h
+  option1 includes: javascript/j, typescript/t, default/d (case insensitive)
+  option2 includes: default/d (case insensitive)
+  
+  ./starter javascript default OR ./starter j d
+  ${MAGENTA}creates a default Javascript server with an express server${NC}
+  "
+  
+  echo "---------------------------------------------------"
+}
+
 noEntry(){
   entry=""
   echo -e "Please what node.js project do you want \n${GREEN}Javascript ---- (J)${NC}\n${BLUE}Typescript ---- (T)${NC}"
@@ -435,6 +504,7 @@ main(){
   local count=$1
   local entry=$2
   local default=$3
+
   if [ "$count" == 2 ];then
     optionChecks "$default" "$entry"
   elif [[ "$count" -gt 0 ]];then 
@@ -449,6 +519,11 @@ main(){
   #----------- CREATES A JAVASCRIPT/TYPESCRIPT PROJECT ----------------
 if [ -z "$default" ];then
   main "$#" "$default"
+
+  #----------- HELP INFO ----------------
+elif [[ "${default}" == 'H' ]];then
+    helpFunction
+    exit
 
   #----------- CREATES A DEFAULT PROJECT ----------------
   #&& "$default" == "D" 
@@ -470,18 +545,10 @@ elif [ "$#" -gt 2 ];then
 fi
 
 
-# TODO:###########1) O flag not taken care of.#######################
-##################2) dependency installment not done#################
-##################3)extension (add ext .js is missing)###############
-##################4) Add typescript project option###################
-##################5) Prompt to select project type###################
-#       6) Option to open project folder
+# TODO:    6) Option to open project folder
 
 ##---------------------- DEFAULT FLAG --------------------------
 #       5) default - creates your progect auomatically without any prompt
-##########6) javascript - for javascript project option###############
-##########7) typescript - for typescript project option###############
-
 
 ## Author: OLUWATOBI AKINOLA SAMUEL
 ## Version: 1.0.0

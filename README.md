@@ -29,6 +29,16 @@ The default flag gets you started with your project in no time, with 5 default p
 
 > How to: 
 ```bash
+
+  ./starter help OR ./starter h # Opens up the help page
+  
+  ./starter <option1> <option2>
+
+  option1 includes: javascript/j, typescript/t, default/d, help/h (case insensitive)
+  option2 includes: default/d (case insensitive)
+  
+  ./starter javascript default OR ./starter j d # creates a default Javascript server with an express server
+  
   ./starter # returns a prompt to select your project type (js or ts)
 
   ./starter default # creates a default js server
@@ -56,7 +66,9 @@ The default flag gets you started with your project in no time, with 5 default p
 
 > FUNTIONS TREE
 ```
-  main -- entry point
+  main----entry point
+    |
+    |<---------helpFunction
     |
   optionCheck
     |___
@@ -91,6 +103,9 @@ The default flag gets you started with your project in no time, with 5 default p
              |               ____checksWrongInput
       installDependencies---|
              |              |____clearShell
+             |
+             |
+      hasLength_noConflcit
              |
              |                  _____clearShell       
   createProjectDirectories-----|
