@@ -8,11 +8,11 @@ BASH_VERSION = 5.1.16(1)-release
 ```
 ----
 > _Included Flags_
-* javascript ( j ) _**working**_
+* javascript ( j ) _**done**_
 * typescript ( t ) _**in progress...**_
-* javascript default ( j d ) _**in progress...**_
+* javascript default ( j d ) _**done**_
 * typescript default ( t d ) _**in progress...**_
-* default ( d ) _**in progress...**_
+* default ( d ) _**done**_
 
 ---
 The default flag gets you started with your project in no time, with 5 default project folders 
@@ -23,9 +23,13 @@ The default flag gets you started with your project in no time, with 5 default p
 1. routes
 1. helper
 1. middleware
+1. dist ---- for _**TYPESCRIPT**_
+1. src ---- for _**TYPESCRIPT**_
 
 > **DEFAULT FILES**
+1. tsconfig.json ---- for _**TYPESCRIPT**_
 1. .env
+1. node_modules
 1. .gitignore >> [ includes the .env and node_modules ]
 1. index.js > [ entry point can also be of your choosen ]
 
@@ -102,13 +106,17 @@ The default flag gets you started with your project in no time, with 5 default p
     |             serverTsTemplate
     |_________________|
              |
+             |
+      dependencyHasLength
+             |
              |               ____checksWrongInput
       installDependencies---|
              |              |____clearShell
              |
              |
-      hasLength_noConflcit
+          hasLength
              |
+    hasConflicting_Dirnames
              |                  _____clearShell       
   createProjectDirectories-----|
                                |_____checksWrongInput

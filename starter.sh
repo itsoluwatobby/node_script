@@ -2,6 +2,7 @@
 
 ## Author: OLUWATOBI AKINOLA SAMUEL
 ## Version: 1.0.0
+## BASH_VERSION = 5.1.16(1)-release
 ## Codename: itsoluwatobby
 ## Description: A short project to help you get started with your node. js project
 ## Email: itsoluwatobby@gmail.com
@@ -20,12 +21,13 @@ NC='\033[0m' # no color(nc)
 checksWrongInput(){
   # CHECKS FOR A WRONG INPUT
   userArg=$1
+  finals=$2
   local trials=0
 
   while [[ "$userArg" != "Y" && "$userArg" != "N" || -z "$userArg" ]]
   do  
       if [ $trials -eq 3 ]; then
-        echo -e "${RED}Script stopped${NC}"
+        [[ "$finals" != "final" ]] && echo -e "${RED}Script stopped${NC}" || echo -e "${GREEN}Happy coding :)!!${NC}"
         exit
       fi
       if [ $trials -eq 2 ];then
@@ -51,6 +53,25 @@ clearShell(){
   [[ ${isCleared^^} == "Y" ]] && clear
 }
 
+dependencyHasLength(){
+  
+  local dependencyLength=$@
+  local count=0
+
+  while [[ "$dependencyLength" -eq 0 ]];do
+    if [ $count -eq 3 ]; then
+      echo -e "${RED}You failed to enter a dependency name${NC}"
+      break
+    fi
+    count=$((count + 1))
+
+    [ $count -lt 3 ] && echo -e "Dependency name(s) (separated by space)?: \c"
+    [ $count -eq 3 ] && echo -e "${RED}Dependency name(s) (separated by space)?${NC}: \c"
+    read -r -a dependencies
+    dependencyLength="${#dependencies[@]}"
+  done
+}
+
 ## install dependencies
 installDependencies(){
   clearShell
@@ -67,9 +88,9 @@ installDependencies(){
   if [ "${installDecision^^}" == 'Y' ]; then
     echo -e "Enter dependency names (separated by space)?: \c"
     read -r -a dependencies
-
-    echo -e "${CYAN}\nInstalling dependencies...${NC}"
+    dependencyHasLength "${dependencies[@]}"
     if [[ "${#dependencies[@]}" -gt 0 ]];then
+      echo -e "${CYAN}\nInstalling dependencies...${NC}"
       
       if [ -z "$typescript" ];then
         for (( i=0; i < "${#dependencies[@]}"; i++ ));do
@@ -87,14 +108,9 @@ installDependencies(){
             npm i -D "@types/${dependencies[i]}" &
             wait
         done
-
-        # npm i --save-dev @types/node
       fi
     fi
-    #[[ "${installDecision^^}" == "Y" ]] && 
-    echo -e "Installation completed"
   fi
-  return 0
 }
 
 serverJsTemplate(){
@@ -117,8 +133,10 @@ serverJsTemplate(){
     echo -e "\nServer template created"
     
     [[ "$typescript" != "defaultjs" ]] && installDependencies
-    [[ "$typescript" == "defaultjs" ]] && echo -e "${GREEN}Happy coding :)!!${NC}"
-    exit
+    if [[ "$typescript" == "defaultjs" ]];then 
+      echo -e "${GREEN}Happy coding :)!!${NC}"
+      exit
+    fi
   else
       echo "console.log('Your Javascript Node.js Project is Ready')" >> $filename
       echo -e "${GREEN}Happy coding :)!!${NC}"
@@ -131,19 +149,26 @@ serverTsTemplate(){
   local filename=$2
   local typescript=$3
 
-  if [[ ${res^^} == "E"  || "$typescript" == "defaultjs" ]];then
+  if [[ ${res^^} == "E"  || "$typescript" == "defaultjs"  || "$typescript" == "defaultts" ]];then
     echo -e "import express, { Request, Response } from \"express\";\nimport http from \"http\";\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\nconst server = http.createServer(app)\n\napp.get('/', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req: Request, res: Response) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> src/$filename
 
     npm i express &
     wait
     npm i -D @types/express &
     wait
+    echo "---------------------------------------------------------"
+    clear
+    echo -e "${GRAY}Installing @types/node..."
     npm i --save-dev @types/node &
     wait
     echo -e "\nServer template created"
     
-    installDependencies "typescript"
-    
+    if [[ "$typescript" != "defaultts" ]];then 
+      installDependencies "typescript"
+    else
+      echo -e "${GREEN}Happy coding :)!!${NC}"
+      exit
+    fi
   else
       echo "console.log('Your Typescript Node.js Project is Ready')" >> src/$filename
       echo -e "${GREEN}Happy coding :)!!${NC}"
@@ -158,18 +183,19 @@ createProject(){
   local filename=$1
   local typescript=$2
   local projectName=$3
+  local defaultTs=$4
 
   if [[ -z "$typescript" || "$typescript" == "defaultjs" ]];then
     npm init -y &
     wait
   else
     touch package.json
-    echo -e "{\n   \"name\": "$projectName",\n   \"version\": \"1.0.0\",\n   \"description\": \"\",\n   \"main\": \"filename\",\n   \"type\": \"module\",\n   \"scripts\": {\n     \"start\": \"tsc && node dist/$filename\",\n     \"dev\": \"tsc && nodemon dist/$filename\"\n   },\n   \"keywords\": [],\n   \"author\": \"\",\n   \"license\": \"ISC\"\n}" >> package.json
+    echo -e "{\n   \"name\": \"$projectName\",\n   \"version\": \"1.0.0\",\n   \"description\": \"\",\n   \"main\": \"$filename\",\n   \"type\": \"module\",\n   \"scripts\": {\n     \"start\": \"tsc && node dist/${filename/.ts/.js}\",\n     \"dev\": \"tsc && nodemon dist/${filename/.ts/.js}\"\n   },\n   \"keywords\": [],\n   \"author\": \"\",\n   \"license\": \"ISC\"\n}" >> package.json
   fi
   echo -e "Project initiated\n"
   
   # --- CREATING A DEFAULT HTTP SERVER ----
-  if [ "$typescript" != "defaultjs" ];then
+  if [[ "$typescript" != "defaultjs" && "$defaultTs" != "defaultts" ]];then
     echo -e "${GREEN}Server boiler plate option${NC}"
     echo -e "--------------------------\n"
     if [ -z "$typescript" ];then
@@ -184,8 +210,7 @@ createProject(){
   if [[ -z "$typescript" || "$typescript" == "defaultjs" ]];then
     serverJsTemplate "$res" "$filename" "$typescript"
   else
-    echo "in dereeree TS"
-    serverTsTemplate "$res" "$filename" "$typescript"
+    serverTsTemplate "$res" "$filename" "$defaultTs"
   fi
 }
 
@@ -222,13 +247,12 @@ fileCreation(){
   local typescript=$1
   local projectName=$2
 
-  if [ "$typescript" == "defaultjs" ];then
+  if [[ "$typescript" == "defaultjs" || "$typescript" == "defaultts" ]];then
     defaultProject "$typescript" "$projectName"
   else
     indexFile "$typescript" "$projectName"
   fi
 }
-
 
 indexFile(){
   local typescript=$1
@@ -292,45 +316,46 @@ defaultProject(){
     echo -e "node_modules\n.env" >> .gitignore
     createProject "index.js" "$typescript"
   else
-    # mkdir src
+    [[ "$typescript" == "defaultts" ]] && mkdir src
     touch src/index.ts .gitignore .env README.md tsconfig.json
     echo -e "node_modules\n.env" >> .gitignore
     tsConfigFile
-    echo "here ts"
-    createProject "index.ts" "ts" "$projectName"
+    createProject "index.ts" "ts" "$projectName" "$typescript"
   fi
 }
 
-hasLength_noConflcit(){
-  
+hasLength(){
+
+  local dirLength=$1
   local directories=$@
   local count=0
-echo "${directories[@]}"
-  while [[ "${#directories[@]}" -eq 0 ]] && [[ $count -le 3 ]];do
+
+  while [[ "$dirLength" -eq 0 ]];do
     if [ $count -eq 3 ]; then
-      echo -e "${RED}You need to directory name(s)${NC}"
+      echo -e "${RED}You need to enter a directory name(s)${NC}"
       echo -e "${GREEN}Happy coding :)!!"
       exit
     fi
-
-    if [ -z "$dirname" ]; then
-        echo -e "${RED}Name(s) cannot be blank${NC}"
-    else
-      for (( i=0; i < ${#directories[@]}; i++ ));do
-        for (( j=i+1; j < ${#directories[@]}; j++ ));do
-          if [[ ${directories[i],,} == ${directories[j],,} ]];then
-            echo -e "${RED}${directories[i]^^} conflicts"
-          fi
-        done
-      done
-    fi
-
     count=$((count + 1))
 
-    [ $count -lt 3 ] && echo -e "Directory names (separated by space)?: \c"
-    [ $count -eq 3 ] && echo -e "${RED}Directory names (separated by space)?${NC}: \c"
+    [ $count -lt 3 ] && echo -e "Directory name(s) (separated by space)?: \c"
+    [ $count -eq 3 ] && echo -e "${RED}Directory name(s) (separated by space)?${NC}: \c"
     read -r -a directories
+    dirLength="${#directories[@]}"
+  done
 
+  hasConflicting_Dirnames "${directories[@]}"
+  directories="${directories[@]}"
+}
+
+hasConflicting_Dirnames(){
+  local directories=$@
+  for (( i=0; i < ${#directories[@]}; i++ ));do
+    for (( j=i+1; j < ${#directories[@]}; j++ ));do
+      if [[ ${directories[i],,} == ${directories[j],,} ]];then
+        echo -e "${RED}${directories[i]^^} conflicts"
+      fi
+    done
   done
 }
 
@@ -339,20 +364,18 @@ createProjectDirectories(){
   local typescript=$1
   local defaultDirectories=("controller" "middleware" "routes" "helpers" "models")
 
-  #clearShell
-
   read -p "Will you like to create extra directories? (Y/N):" extraDecision
   extraDecision=${extraDecision:0:1}
   extraDecision=${extraDecision^^}
 
-  checksWrongInput "$extraDecision"
+  checksWrongInput "$extraDecision" "final"
   extraDecision="$userArg"
 
   if [[ "$extraDecision" == "Y" && -z "$typescript" ]]; then
     echo -e "Enter directory names (separated by space)?: \c"
     read -r -a directories
     
-    hasLength_noConflcit "${directories[@]}"
+    hasLength "${#directories[@]}" "${directories[@]}"
  
     mkdir "${directories[@]}"
     echo "${#directories[@]} folders: [${directories[@]}] successfully created"
@@ -366,7 +389,7 @@ createProjectDirectories(){
     read -r -a directories
     cd src
 
-    hasLength_noConflcit "${directories[@]}"
+    hasLength "${directories[@]}"
 
     mkdir "${directories[@]}"
     echo "${#directories[@]} folders: [${directories[@]}] successfully created"
@@ -443,31 +466,25 @@ optionChecks(){
   #--------------------- JS ------------------------
   if [[ "${lang,,}" == "${langOption[0]:0:1}" && -z $default ]];then
     echo -e "${YELLOW}Setting up ${langOption[0]} node.js project...${NC}"
-    echo "JS here 1"
     mainProgram
 
   #--------------------- TS ------------------------
   elif [[ "${lang,,}" == "${langOption[1]:0:1}" && -z $default ]];then
       echo -e "${YELLOW}Setting up ${langOption[1]} node.js project...${NC}"
-      echo "TS here 1"
       mainProgram "ts"
 
   #--------------------- DEFAULT JS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[0]:0:1}" ]];then
       echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
-      echo "JS def here 1"
       mainProgram "defaultjs"
 
   #--------------------- DEFAULT TS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[1]:0:1}" ]];then
       echo -e "${YELLOW}Setting up a default ${langOption[1]} node.js project...${NC}"
-    echo -e "${GREEN}Feature coming soon...1${NC}"
-    sleep 3
-    exit
+      mainProgram "defaultts"
 
   #--------------------- DEFAULT JS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && -z "${lang}" ]] || [ "${lang,,}" != "${langOption[0]:0:1}" ] || [ "${lang,,}" != "${langOption[1]:0:1}" ];then
-  echo "JS def here 2"
       echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
       mainProgram "defaultjs"
   fi
@@ -480,7 +497,7 @@ helpFunction(){
   
   "${GREEN}BASH_VERSION = $BASH_VERSION${NC}"
 
-  ${GRAY}---------------------------------------------
+  ${GRAY}-----------------------------------------------
   ./starter help OR ./starter h
   ${MAGENTA}Opens up this help page${NC}
   ${GRAY}
@@ -500,7 +517,9 @@ helpFunction(){
 noEntry(){
   entry=""
   echo -e "Please what node.js project do you want \n${GREEN}Javascript ---- (J)${NC}\n${BLUE}Typescript ---- (T)${NC}"
-  read -p "Option: " langType
+  echo -e "Option (${GREEN}J${NC} | ${BLUE}T${NC}): \c"
+  read langType
+
   entry="$langType"
 }
 
@@ -557,11 +576,9 @@ fi
 
 # TODO:    6) Option to open project folder
 
-##---------------------- DEFAULT FLAG --------------------------
-#       5) default - creates your progect auomatically without any prompt
-
 ## Author: OLUWATOBI AKINOLA SAMUEL
 ## Version: 1.0.0
+## BASH_VERSION = 5.1.16(1)-release
 ## Codename: itsoluwatobby
 ## Description: A short project to help you get started with your node.js project
 ## Email: itsoluwatobby@gmail.com
