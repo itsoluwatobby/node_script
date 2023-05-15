@@ -8,11 +8,12 @@ BASH_VERSION = 5.1.16(1)-release
 ```
 ----
 > _Included Flags_
-* javascript ( j ) _**done**_
-* typescript ( t ) _**in progress...**_
-* javascript default ( j d ) _**done**_
-* typescript default ( t d ) _**in progress...**_
-* default ( d ) _**done**_
+* help ( h )
+* javascript ( j )
+* typescript ( t )
+* javascript default ( j d )
+* typescript default ( t d )
+* default ( d )
 
 ---
 The default flag gets you started with your project in no time, with 5 default project folders 
