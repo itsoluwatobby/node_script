@@ -1,6 +1,8 @@
 # NODE.JS STARTER
 #### This script gets you started with your node.js project with little or configuration. All you need to do is run the script.
 
+BASH_VERSION = 5.1.16(1)-release
+
 ```bash
   ./starter.sh option option
 ```

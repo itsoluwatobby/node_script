@@ -110,7 +110,7 @@ serverJsTemplate(){
     installDependencies
   
   elif [[ ${res^^} == "E" || "$typescript" == "defaultjs" ]];then
-    echo -e "const express = require("express");\nconst app = express()\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req, res) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
+    echo -e "const express = require(\"express\");\nconst http = require(\"http\");\n\nconst app = express()\nconst server = http.createServer(app)\n\nconst PORT = process.env.PORT || 5000\n\napp.get('/', (req, res) => {\n\tres.status(200).json({status: true, message: 'Server up and running'})\n})\n\n\napp.all('*', (req, res) => {\n\tres.status(200).json({status: true, message: 'Resource not found'})\n})\n\n\nserver.listen(PORT, () => console.log('server running on port: ' + PORT))" >> $filename
     npm i express &
     wait
 
@@ -159,12 +159,12 @@ createProject(){
   local typescript=$2
   local projectName=$3
 
-  if [ -z "$typescript" ];then
+  if [[ -z "$typescript" || "$typescript" == "defaultjs" ]];then
     npm init -y &
     wait
   else
     touch package.json
-    echo -e "{\n   \"name\": \"$projectName\",\n   \"version\": \"1.0.0\",\n   \"description\": \"\",\n   \"main\": \"filename\",\n   \"type\": \"module\",\n   \"scripts\": {\n     \"start\": \"tsc && node dist/$filename\",\n     \"dev\": \"tsc && nodemon dist/$filename\"\n   },\n   \"keywords\": [],\n   \"author\": \"\",\n   \"license\": \"ISC\"\n}" >> package.json
+    echo -e "{\n   \"name\": "$projectName",\n   \"version\": \"1.0.0\",\n   \"description\": \"\",\n   \"main\": \"filename\",\n   \"type\": \"module\",\n   \"scripts\": {\n     \"start\": \"tsc && node dist/$filename\",\n     \"dev\": \"tsc && nodemon dist/$filename\"\n   },\n   \"keywords\": [],\n   \"author\": \"\",\n   \"license\": \"ISC\"\n}" >> package.json
   fi
   echo -e "Project initiated\n"
   
@@ -184,6 +184,7 @@ createProject(){
   if [[ -z "$typescript" || "$typescript" == "defaultjs" ]];then
     serverJsTemplate "$res" "$filename" "$typescript"
   else
+    echo "in dereeree TS"
     serverTsTemplate "$res" "$filename" "$typescript"
   fi
 }
@@ -295,6 +296,7 @@ defaultProject(){
     touch src/index.ts .gitignore .env README.md tsconfig.json
     echo -e "node_modules\n.env" >> .gitignore
     tsConfigFile
+    echo "here ts"
     createProject "index.ts" "ts" "$projectName"
   fi
 }
@@ -339,7 +341,7 @@ createProjectDirectories(){
 
   #clearShell
 
-  read -p "Would you like to create extra directories? (Y/N):" extraDecision
+  read -p "Will you like to create extra directories? (Y/N):" extraDecision
   extraDecision=${extraDecision:0:1}
   extraDecision=${extraDecision^^}
 
@@ -434,22 +436,26 @@ mainProgram() {
 optionChecks(){
   lang=$1
   local default=$2
+  default=${default:0:1}
   local langOption=("javascript" "typescript" "default")
   lang="${lang:0:1}"
 
   #--------------------- JS ------------------------
   if [[ "${lang,,}" == "${langOption[0]:0:1}" && -z $default ]];then
     echo -e "${YELLOW}Setting up ${langOption[0]} node.js project...${NC}"
+    echo "JS here 1"
     mainProgram
 
   #--------------------- TS ------------------------
   elif [[ "${lang,,}" == "${langOption[1]:0:1}" && -z $default ]];then
       echo -e "${YELLOW}Setting up ${langOption[1]} node.js project...${NC}"
+      echo "TS here 1"
       mainProgram "ts"
 
   #--------------------- DEFAULT JS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && "${lang,,}" == "${langOption[0]:0:1}" ]];then
       echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
+      echo "JS def here 1"
       mainProgram "defaultjs"
 
   #--------------------- DEFAULT TS ------------------------
@@ -461,6 +467,7 @@ optionChecks(){
 
   #--------------------- DEFAULT JS ------------------------
   elif [[ "${default,,}" == "${langOption[2]:0:1}" && -z "${lang}" ]] || [ "${lang,,}" != "${langOption[0]:0:1}" ] || [ "${lang,,}" != "${langOption[1]:0:1}" ];then
+  echo "JS def here 2"
       echo -e "${YELLOW}Setting up a default ${langOption[0]} node.js project...${NC}"
       mainProgram "defaultjs"
   fi
@@ -470,6 +477,9 @@ optionChecks(){
 helpFunction(){
   echo "---------------------------------------------------"
   echo -e "${CYAN}This should give you an insight on how to use this script effectively${NC}\n\n${GRAY}Author: OLUWATOBI AKINOLA SAMUEL\nVersion: 1.0.0\nGithub: ${BLUE}https://github.com/itsoluwatobby${NC}
+  
+  "${GREEN}BASH_VERSION = $BASH_VERSION${NC}"
+
   ${GRAY}---------------------------------------------
   ./starter help OR ./starter h
   ${MAGENTA}Opens up this help page${NC}
