@@ -71,7 +71,7 @@ The default flag gets you started with your project in no time, with 5 default p
 * [x] Custom project folders
 
 
-> FUNTIONS TREE
+> FUNCTIONS TREE
 ```
   main----entry point
     |
