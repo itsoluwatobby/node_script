@@ -4,6 +4,7 @@
 > Requirement
 * npm
 * node
+* Bash
 
 BASH_VERSION = 5.1.16(1)-release
 
